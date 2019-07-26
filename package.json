@@ -1,22 +1,52 @@
 {
-  "name": "electron-quick-start",
-  "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "name": "prm360",
+  "version": "1.0.1",
+  "description": "A Cloud Based E-Procurement Software",
   "main": "main.js",
-  "scripts": {
-    "start": "electron ."
+  "build": {
+    "appId": "com.prm360.app",
+    "productName": "prm360",
+    "mac": {
+      "category": "com.prm360.app",
+      "target": [
+        "zip",
+        "dmg"
+      ]
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "prm.ico",
+      "publisherName": "ACADS 360",
+      "verifyUpdateCodeSignature": false
+    }
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "scripts": {
+    "start": "electron .",
+    "build": "build --win",
+    "ship": "build --win -p always",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "publish": "build --win -p always"
+  },
+  "repository": {
+    "url": "https://github.com/prm360container/prm360-rachem.git"
+  },
   "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "prm360"
   ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "author": "ACADS 360",
+  "license": "MIT",
   "devDependencies": {
-    "electron": "^5.0.6"
+    "electron": "^4.1.4",
+    "electron-builder": "^20.39.0"
+  },
+  "dependencies": {
+    "electron-localshortcut": "^3.1.0",
+    "electron-notifications": "^1.0.0",
+    "electron-packager": "^13.1.1",
+    "electron-updater": "^4.0.6",
+    "node-gyp": "^4.0.0",
+    "npm": "^6.9.0",
+    "rebuild": "^0.1.2"
   }
 }

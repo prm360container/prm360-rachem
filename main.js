@@ -1,26 +1,61 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const {app, dialog, BrowserWindow, Menu, shell, arg} = require('electron')
+const {autoUpdater} = require('electron-updater')
+const electronLocalshortcut = require('electron-localshortcut')
+const notifier = require('electron-notifications')
 const path = require('path')
+const url = require('url')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+let childWindow
+
+app.setLoginItemSettings({
+  openAtLogin: true,
+  path : app.getPath("exe")
+});
 
 function createWindow () {
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    height: 850,
+    width: 1850,
+    titleBarStyle: 'customButtonsOnHover',
+    icon: __dirname + 'prm.ico',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      nodeIntegration: false
     }
   })
 
-  // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  
+  
+  mainWindow.setIcon(path.join(__dirname, 'prm.ico'));
+  
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  // mainWindow.setMenu(null)
+  mainWindow.maximize()
+  // mainWindow.setResizable(false)
+  //mainWindow.on('unmaximize', () => mainWindow.maximize())
+
+  
+  //mainWindow.setMenuBarVisibility(false)
+
+  //and load the website
+  
+  mainWindow.loadURL("https://rachem.prm360.com/WEBDEV/prm360.html")
+  
+
+  electronLocalshortcut.register(mainWindow, 'F12', () => {
+    // Open DevTools
+    mainWindow.webContents.openDevTools()
+  });
+
+  electronLocalshortcut.register(mainWindow, 'F5', () => {
+    // Open DevTools
+    mainWindow.webContents.reload();
+  });
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -31,10 +66,33 @@ function createWindow () {
   })
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+let template = [
+  {
+    role: 'Help',
+    submenu: [
+      {
+        label: 'App Version',
+        click () { 
+          notifier.notify('Current Version: ',{
+          message:`Current version ${app.getVersion()}`,
+          icon: 'https://www.prm360.com/frontend/web/images/logo.png',
+          buttons: ['Close']
+          }) 
+        }
+      }
+    ]
+  }
+]
+
+const menu = Menu.buildFromTemplate(template)
+Menu.setApplicationMenu(menu)
+
+app.on('ready', function()  {
+  createWindow();
+  autoUpdater.checkForUpdatesAndNotify();  
+
+  
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -49,5 +107,46 @@ app.on('activate', function () {
   if (mainWindow === null) createWindow()
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+//setup auto updates
+
+autoUpdater.on('error', (error) => {
+  notifier.notify('Updates in Progress: ',{
+    message: 'Downloading Updates',                     //error == null ? "unknown" : (error.stack || error).toString(),
+    icon: 'https://www.prm360.com/frontend/web/images/logo.png',
+    buttons: ['Report']
+  })
+})
+
+autoUpdater.on('update-available', () => {
+  notifier.notify('Updates Found', {
+    message: 'Do you want update now?',
+    icon: 'https://www.prm360.com/frontend/web/images/logo.png',
+    buttons: ['Download']
+  }, (buttonIndex) => {
+    if (buttonIndex === 0) {
+      autoUpdater.downloadUpdate()
+    }
+  })
+});
+
+
+autoUpdater.on('update-not-available', () => {
+  notifier.notify('Stable Version Found', {
+    message: ` Version ${app.getVersion()}`,
+    icon: 'https://www.prm360.com/frontend/web/images/logo.png',
+    buttons : ['Ignore']
+  })
+  
+});
+
+autoUpdater.on('update-downloaded', () => {
+  notifier.notify('Update Downloaded', {
+    message: 'Reset now.',
+    icon: 'https://www.prm360.com/frontend/web/images/logo.png',
+    buttons: ['Restart']
+  }, (buttonIndex) => {
+    if (buttonIndex === 0) {
+      autoUpdater.quitAndInstall()
+    }
+  })
+});
